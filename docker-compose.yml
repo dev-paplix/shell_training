@@ -1,0 +1,69 @@
+name: Wesitex
+
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE}
+      POSTGRES_USER: ${USER}
+      POSTGRES_PASSWORD: ${PASSWORD}
+      TZ: Asia/Kuala_Lumpur
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - mynetwork
+
+  pgadmin4:
+    image: elestio/pgadmin:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
+      PGADMIN_LISTEN_PORT: 8085
+    ports:
+      - "8085:8085"
+    networks:
+      - mynetwork
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql_container
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: "Asia/Kuala_Lumpur"
+    networks:
+      - mynetwork
+    volumes:
+      - ./dbvolume:/var/lib/mysql
+      - ./databases/database.sql:/docker-entrypoint-initdb.d/database.sql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin_container
+    restart: always
+    ports:
+      - 8086:80
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=${MYSQL_USER}
+      - PMA_PASSWORD=${MYSQL_PASSWORD}
+      - PMA_ARBITRARY=1
+      - TZ=Asia/Kuala_Lumpur
+    depends_on:
+      - mysql
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
